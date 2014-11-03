@@ -1,0 +1,48 @@
+MODEL{#begin model
+  for (k in 1:(Nd+Nu)){
+    for (j in 1:Jfull){
+		  ind[k,j]<-equals(1,template[Icat[k],j])
+		  MBS[k,j] ~ dbern(mu_bs[k,j])
+		  mu_bs[k,j]<-ind[k,j]*thetaBS[j]+(1-ind[k,j])*psiBS[j]
+	  
+		  ind.new[k,j] <- equals(1,template[Icat.new[k],j])
+		  MBS.new[k,j]~dbern(mu_bs.new[k,j])
+		  mu_bs.new[k,j]<-psiBS[j]*(1-ind.new[k,j])+thetaBS[j]*ind.new[k,j]
+	 }
+  }
+  
+  
+  for (k in 1:Nd){
+    for (j in 1:JSS){
+	  MSS[k,j] ~ dbern(mu_ss[k,j])
+	  mu_ss[k,j]<-ind[k,j]*thetaSS[j]+(1-ind[k,j])*psiSS[j]
+	}
+
+  }
+ 
+  # priors
+  for (k in 1:Nd){
+    Icat[k] ~ dcat(pEti[1:Jallowed])
+	Icat.new[k] ~ dcat(pEti[1:Jallowed])
+  }
+  pEti[1:Jallowed]~ddirch(alpha[])
+  
+  for (k in (Nd+1):(Nd+Nu)){
+    Icat[k]<-Jallowed+1
+	Icat.new[k]<-Jallowed+1
+  }
+  
+  # bronze-standard measurement characteristics:
+  for (j in 1:Jfull){
+    thetaBS[j]~dbeta(alphaB[j],betaB[j])
+    psiBS[j]~dbeta(1,1)
+  }
+  
+
+  # gold-standard measurement characteristics:
+  for (j in 1:JSS){
+	thetaSS[j]~dbeta(alphaS[j],betaS[j])
+	psiSS[j]<-0
+  }
+  
+}#end of model

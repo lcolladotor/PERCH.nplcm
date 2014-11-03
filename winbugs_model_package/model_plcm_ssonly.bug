@@ -1,0 +1,55 @@
+MODEL{
+        ## Likelihood: L(M;pi,theta,psi)
+        # BrS Measure data #
+        for (k in 1:(Nd+Nu)) # for all subjects
+        {
+                for (j in (Jss.only+1):Jfull) # for all pathogens
+                {
+                        ind[k,j]<-equals(1,template[Icat[k],j]) ##### latent lung state indicator 1(Ilung_i == j)
+                        MBS[k,j] ~ dbern(mu_bs[k,j])            ##### BS measure data likelihood
+                        mu_bs[k,j]<-ind[k,j]*thetaBS[j]+(1-ind[k,j])*psiBS[j]
+                        
+                }
+        }
+        
+        # SS Measure data #
+        for (k in 1:Nd) ###### cases
+        { 
+                for (j in 1:JSS) ##### for pathogens with SS data
+                {
+                        MSS[k,j] ~ dbern(mu_ss[k,j])            ##### SS measure data likelihood
+                        mu_ss[k,j]<-ind[k,j]*thetaSS[j]+(1-ind[k,j])*psiSS[j]
+                }
+        }
+        
+        # Latent variable: for cases
+        for (k in 1:Nd) 
+        {
+                Icat[k] ~ dcat(pEti[1:Jallowed]) ###### latent Ilung ~ uniform multinomial( pi )
+        }
+        
+        ## priors : Pi, theta, psi
+        pEti[1:Jallowed]~ddirch(alpha[])         ###### pi ~ dirichlet prior (alpha)  
+
+        # Latent variable: for controls
+        for (k in (Nd+1):(Nd+Nu)) 
+        {
+                Icat[k]<-Jallowed+1              ###### fixed category J+1 as control
+        }      
+        
+        # bronze-standard measurement characteristics:
+        for (j in (Jss.only+1):Jfull)
+        {
+                thetaBS[j]~dbeta(alphaB[j],betaB[j]) ###### sensitivity prior BS
+                psiBS[j]~dbeta(1,1)                  ###### FPR prior   
+        }
+        
+        
+        # silver-standard measurement characteristics:
+        for (j in 1:JSS)
+        {
+                thetaSS[j]~dbeta(alphaS[j],betaS[j]) ###### sensitivity prior SS
+                psiSS[j]<-0                          ###### perfect specificity
+        }
+        
+}#end of model

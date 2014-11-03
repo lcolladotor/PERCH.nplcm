@@ -1,0 +1,39 @@
+MODEL{#begin model
+  for (k in 1:Nd){
+    for (j in 1:Jfull){
+		  ind[k,j]<-equals(1,template[Icat[k],j])
+		  MBS[k,j] ~ dbern(mu_bs[k,j])
+		  mu_bs[k,j]<-ind[k,j]*thetaBS[j]+(1-ind[k,j])*psiBS.cut[j]
+	 }
+  }
+  
+  for (j in 1:Jfull){
+	psiBS.cut[j]<-cut(psiBS[j])
+  }
+  
+  for (k in (Nd+1):(Nd+Nu)){
+    for (j in 1:Jfull){
+      ind[k,j]<-equals(1,template[Icat[k],j])
+      MBS[k,j] ~ dbern(mu_bs[k,j])
+      mu_bs[k,j]<-ind[k,j]*thetaBS[j]+(1-ind[k,j])*psiBS[j]
+
+	 }
+  }
+  
+  # priors
+  for (k in 1:Nd){
+    Icat[k] ~ dcat(pEti[1:Jallowed])
+  }
+  pEti[1:Jallowed]~ddirch(alpha[])
+  
+  for (k in (Nd+1):(Nd+Nu)){
+    Icat[k]<-Jallowed+1
+  }
+  
+  #bronze-standard measurement characteristics:
+  for (j in 1:Jfull){
+    thetaBS[j]~dbeta(alphaB[j],betaB[j])
+    psiBS[j]~dbeta(1,1)
+  }
+    
+}#end of model
